@@ -12,8 +12,11 @@ import java.io.IOException;
 @RestController
 @RequestMapping(value = "/api")
 public class MainController {
-    @Autowired
-    FileSystemService fileSystemService;
+    private FileSystemService fileSystemService;
+
+    public MainController(FileSystemService fileSystemService) {
+        this.fileSystemService = fileSystemService;
+    }
 
     @RequestMapping(value = "/hello", method = RequestMethod.GET)
     public ResponseEntity<String> printHello() {
@@ -24,30 +27,35 @@ public class MainController {
     public ResponseEntity<?> getFileInfo(@RequestParam String path) {
         try {
             return ResponseEntity.ok(fileSystemService.getFileDTO(path));
-        }
-        catch(FileNotFoundException e){
+        } catch (IOException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
-        }
-        catch(IOException e){
-            return ResponseEntity.badRequest().body("Error while trying to access file or directory");
         }
     }
 
     @RequestMapping(value = "/get-text-file-content", method = RequestMethod.GET)
-    public ResponseEntity<String> getTextFileContent(@RequestParam String path) {
-        return ResponseEntity.ok("request for: " + path);
+    public ResponseEntity<?> getTextFileContent(@RequestParam String path) {
+        try {
+            return ResponseEntity.ok(fileSystemService.readTextFile(path));
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @RequestMapping(value = "/remove-file", method = RequestMethod.DELETE)
-    public ResponseEntity<String> removeFile(@RequestParam String path) {
-        return ResponseEntity.ok("request for: " + path);
+    public ResponseEntity<?> removeFile(@RequestParam String path) {
+        try {
+            fileSystemService.removeFile(path);
+            return ResponseEntity.ok().build();
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     private static class RenameRequest {
         private String path;
         private String newName;
 
-        public String getPath() {
+        String getPath() {
             return path;
         }
 
@@ -55,7 +63,7 @@ public class MainController {
             this.path = path;
         }
 
-        public String getNewName() {
+        String getNewName() {
             return newName;
         }
 
@@ -66,7 +74,12 @@ public class MainController {
 
     @RequestMapping(value = "/rename-file", method = RequestMethod.POST)
     public ResponseEntity<String> renameFile(@RequestBody RenameRequest renameRequest) {
-        return ResponseEntity.ok("request for: " + renameRequest.getPath() + ", new name: " + renameRequest.getNewName());
+        try {
+            fileSystemService.renameFile(renameRequest.getPath(), renameRequest.getNewName());
+            return ResponseEntity.ok().build();
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     private static class MoveRequest {
@@ -74,7 +87,7 @@ public class MainController {
         private String newPath;
         private Boolean keepOld;
 
-        public String getPath() {
+        String getPath() {
             return path;
         }
 
@@ -82,7 +95,7 @@ public class MainController {
             this.path = path;
         }
 
-        public String getNewPath() {
+        String getNewPath() {
             return newPath;
         }
 
@@ -90,7 +103,7 @@ public class MainController {
             this.newPath = newPath;
         }
 
-        public Boolean getKeepOld() {
+        Boolean getKeepOld() {
             return keepOld;
         }
 
@@ -101,6 +114,11 @@ public class MainController {
 
     @RequestMapping(value = "/move-file", method = RequestMethod.POST)
     public ResponseEntity<String> moveFile(@RequestBody MoveRequest moveRequest) {
-        return ResponseEntity.ok("request for: " + moveRequest.getPath() + ", new path: " + moveRequest.getNewPath());
+        try {
+            fileSystemService.moveFile(moveRequest.getPath(), moveRequest.getNewPath(), moveRequest.getKeepOld());
+            return ResponseEntity.ok().build();
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
