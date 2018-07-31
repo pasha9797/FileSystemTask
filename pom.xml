@@ -63,13 +63,13 @@
                 <configuration>
                     <webResources>
                         <resources>
-                            <directory>web</directory>
+                            <directory>src/main/webapp</directory>
                             <includes>
                                 <include>**/*.*</include><!--this line includes the xml files into the war, which will be found when it is exploded in server during deployment -->
                             </includes>
                         </resources>
                     </webResources>
-                    <webXml>web/WEB-INF/web.xml</webXml>
+                    <webXml>src/main/webapp/WEB-INF/web.xml</webXml>
                 </configuration>
             </plugin>
 
