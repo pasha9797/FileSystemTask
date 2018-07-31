@@ -3,15 +3,14 @@ package com.practice.service;
 import com.practice.model.FileDTO;
 import com.practice.model.FileDTOConverter;
 import org.springframework.stereotype.Service;
-import sun.security.util.IOUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class FileSystemService {
@@ -25,6 +24,11 @@ public class FileSystemService {
     }
 
     public String readTextFile(String path) throws IOException {
+        Pattern p = Pattern.compile("^.+\\.(txt|rtf)$");
+        Matcher m = p.matcher(path);
+        if(!m.matches())
+            throw new IOException("Selected file is not a text file");
+
         File file = openWithCheck(path);
 
         String data;
@@ -64,17 +68,24 @@ public class FileSystemService {
     }
 
     public void moveFile(String path, String newPath, Boolean keepOld) throws IOException {
-        if (!keepOld) {
-            Path temp = Files.move(Paths.get(path), Paths.get(newPath));
-            if (temp == null) {
-                throw new IOException("Unable to move file or directory");
+        try {
+            if (!keepOld) {
+                Path temp = Files.move(Paths.get(path), Paths.get(newPath));
+                if (temp == null) {
+                    throw new IOException("Unable to move file or directory");
+                }
+            } else {
+                Path temp = Files.copy(Paths.get(path), Paths.get(newPath));
+                if (temp == null) {
+                    throw new IOException("Unable to copy file or directory");
+                }
             }
         }
-        else{
-            Path temp = Files.copy(Paths.get(path), Paths.get(newPath));
-            if (temp == null) {
-                throw new IOException("Unable to copy file or directory");
-            }
+        catch(FileAlreadyExistsException e){
+            throw new IOException("File or directory with such name already exists");
+        }
+        catch(NoSuchFileException e){
+            throw new IOException("No such file or directory");
         }
     }
 

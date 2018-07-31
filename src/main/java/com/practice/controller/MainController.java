@@ -5,11 +5,13 @@ import com.practice.service.FileSystemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
 @RestController
+@EnableWebMvc
 @RequestMapping(value = "/api")
 public class MainController {
     private FileSystemService fileSystemService;
@@ -19,12 +21,12 @@ public class MainController {
     }
 
     @RequestMapping(value = "/hello", method = RequestMethod.GET)
-    public ResponseEntity<String> printHello() {
+    public @ResponseBody ResponseEntity<String> printHello() {
         return ResponseEntity.ok("hello from spring!");
     }
 
     @RequestMapping(value = "/get-file-info", method = RequestMethod.GET)
-    public ResponseEntity<?> getFileInfo(@RequestParam String path) {
+    public @ResponseBody ResponseEntity<?> getFileInfo(@RequestParam String path) {
         try {
             return ResponseEntity.ok(fileSystemService.getFileDTO(path));
         } catch (IOException e) {
@@ -33,7 +35,7 @@ public class MainController {
     }
 
     @RequestMapping(value = "/get-text-file-content", method = RequestMethod.GET)
-    public ResponseEntity<?> getTextFileContent(@RequestParam String path) {
+    public @ResponseBody ResponseEntity<?> getTextFileContent(@RequestParam String path) {
         try {
             return ResponseEntity.ok(fileSystemService.readTextFile(path));
         } catch (IOException e) {
@@ -42,7 +44,7 @@ public class MainController {
     }
 
     @RequestMapping(value = "/remove-file", method = RequestMethod.DELETE)
-    public ResponseEntity<?> removeFile(@RequestParam String path) {
+    public @ResponseBody ResponseEntity<?> removeFile(@RequestParam String path) {
         try {
             fileSystemService.removeFile(path);
             return ResponseEntity.ok().build();
@@ -73,7 +75,7 @@ public class MainController {
     }
 
     @RequestMapping(value = "/rename-file", method = RequestMethod.POST)
-    public ResponseEntity<String> renameFile(@RequestBody RenameRequest renameRequest) {
+    public @ResponseBody ResponseEntity<String> renameFile(@RequestBody RenameRequest renameRequest) {
         try {
             fileSystemService.renameFile(renameRequest.getPath(), renameRequest.getNewName());
             return ResponseEntity.ok().build();
@@ -82,7 +84,7 @@ public class MainController {
         }
     }
 
-    private static class MoveRequest {
+    private @ResponseBody static class MoveRequest {
         private String path;
         private String newPath;
         private Boolean keepOld;
@@ -113,7 +115,7 @@ public class MainController {
     }
 
     @RequestMapping(value = "/move-file", method = RequestMethod.POST)
-    public ResponseEntity<String> moveFile(@RequestBody MoveRequest moveRequest) {
+    public @ResponseBody ResponseEntity<String> moveFile(@RequestBody MoveRequest moveRequest) {
         try {
             fileSystemService.moveFile(moveRequest.getPath(), moveRequest.getNewPath(), moveRequest.getKeepOld());
             return ResponseEntity.ok().build();
