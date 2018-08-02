@@ -1,13 +1,18 @@
 package com.practice.model;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+
 import java.sql.Date;
 
+@JsonTypeName("FileDTO")
 public class FileDTO {
-    String path;
-    Long size;
-    Date creationDate;
-    Date lastModifiedDate;
-    Date lastAccessDate;
+    private String path;
+    private Long size;
+    private Date creationDate;
+    private Date lastModifiedDate;
+    private Date lastAccessDate;
+    private Boolean directory;
 
     public String getPath() {
         return path;
@@ -47,5 +52,13 @@ public class FileDTO {
 
     public void setLastAccessDate(Date lastAccessDate) {
         this.lastAccessDate = lastAccessDate;
+    }
+
+    public Boolean getDirectory() {
+        return directory;
+    }
+
+    public void setDirectory(Boolean directory) {
+        directory = directory;
     }
 }

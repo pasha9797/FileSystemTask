@@ -1,13 +1,11 @@
 package com.practice.controller;
 
-import com.practice.model.FileDTO;
 import com.practice.service.FileSystemService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 @RestController
@@ -34,6 +32,15 @@ public class MainController {
         }
     }
 
+    @RequestMapping(value = "/get-directory-content", method = RequestMethod.GET)
+    public @ResponseBody ResponseEntity<?> getDirectoryContent(@RequestParam String path) {
+        try {
+            return ResponseEntity.ok(fileSystemService.getDirectoryContent(path));
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @RequestMapping(value = "/get-text-file-content", method = RequestMethod.GET)
     public @ResponseBody ResponseEntity<?> getTextFileContent(@RequestParam String path) {
         try {
@@ -47,7 +54,7 @@ public class MainController {
     public @ResponseBody ResponseEntity<?> removeFile(@RequestParam String path) {
         try {
             fileSystemService.removeFile(path);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok().body("File removed successfully");
         } catch (IOException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -78,7 +85,7 @@ public class MainController {
     public @ResponseBody ResponseEntity<String> renameFile(@RequestBody RenameRequest renameRequest) {
         try {
             fileSystemService.renameFile(renameRequest.getPath(), renameRequest.getNewName());
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok().body("File renamed successfully");
         } catch (IOException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -118,7 +125,27 @@ public class MainController {
     public @ResponseBody ResponseEntity<String> moveFile(@RequestBody MoveRequest moveRequest) {
         try {
             fileSystemService.moveFile(moveRequest.getPath(), moveRequest.getNewPath(), moveRequest.getKeepOld());
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok().body("File moved/copied successfully");
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @RequestMapping(value="/upload-file", method = RequestMethod.POST)
+    public @ResponseBody ResponseEntity<String>  uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("directoryPath") String directoryPath) {
+        try {
+            fileSystemService.uploadFile(file, directoryPath);
+            return ResponseEntity.ok().body("File uploaded successfully");
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @RequestMapping(value="/create-directory", method = RequestMethod.POST)
+    public @ResponseBody ResponseEntity<String>  createDirectory(@RequestParam String directoryPath) {
+        try {
+            fileSystemService.createDirectory(directoryPath);
+            return ResponseEntity.ok().body("Directory created successfully");
         } catch (IOException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

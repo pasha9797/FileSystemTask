@@ -7,28 +7,27 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Date;
-import java.util.ArrayList;
 
 public class FileDTOConverter {
-    public static FileDTO convertToDTO(File file) throws IOException {
+    public static FileDTO convertToDTO(File file, String rootDirectory) throws IOException {
         FileDTO dto;
-        if (file.isFile()) {
-            dto = new FileDTO();
-        } else {
-            dto = new DirectoryDTO();
-            ((DirectoryDTO) dto).setContentFiles(new ArrayList<>());
-            for (File child : file.listFiles())
-                ((DirectoryDTO) dto).getContentFiles().add(child.getName());
-        }
+        dto = new FileDTO();
 
         dto.setSize(file.length());
-        dto.setPath(file.getCanonicalPath());
+
+        String shorterRootDirectory = rootDirectory.substring(0, rootDirectory.length() - 1);
+        if (shorterRootDirectory.equals(file.getCanonicalPath()))
+            dto.setPath("");
+        else
+            dto.setPath(file.getCanonicalPath().replace(rootDirectory, ""));
+
         Path path = Paths.get(file.getCanonicalPath());
         BasicFileAttributes attr;
         attr = Files.readAttributes(path, BasicFileAttributes.class);
         dto.setCreationDate(new Date(attr.creationTime().toMillis()));
         dto.setLastModifiedDate(new Date(attr.lastModifiedTime().toMillis()));
         dto.setLastAccessDate(new Date(attr.lastAccessTime().toMillis()));
+        dto.setDirectory(file.isDirectory());
 
         return dto;
     }
