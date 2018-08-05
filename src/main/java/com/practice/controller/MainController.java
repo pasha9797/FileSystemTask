@@ -18,11 +18,6 @@ public class MainController {
         this.fileSystemService = fileSystemService;
     }
 
-    @RequestMapping(value = "/hello", method = RequestMethod.GET)
-    public @ResponseBody ResponseEntity<String> printHello() {
-        return ResponseEntity.ok("hello from spring!");
-    }
-
     @RequestMapping(value = "/get-file-info", method = RequestMethod.GET)
     public @ResponseBody ResponseEntity<?> getFileInfo(@RequestParam String path) {
         try {

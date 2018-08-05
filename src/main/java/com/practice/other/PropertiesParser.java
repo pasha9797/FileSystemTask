@@ -21,6 +21,7 @@ public class PropertiesParser {
         Properties properties = new Properties();
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream(propertiesFile);
         properties.load(inputStream);
-        return properties.getProperty(rootDirectoryPropertyName);
+        String res= properties.getProperty(rootDirectoryPropertyName);
+        return res;
     }
 }

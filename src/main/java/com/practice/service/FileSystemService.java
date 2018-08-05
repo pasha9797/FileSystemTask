@@ -40,13 +40,16 @@ public class FileSystemService {
         return FileDTOConverter.convertToDTO(file, rootDirectory);
     }
 
-    public List<FileDTO> getDirectoryContent(String path) throws IOException{
+    public List<FileDTO> getDirectoryContent(String path) throws IOException {
         File directory = openWithCheck(getAbsolutePath(path));
         if (!directory.isDirectory())
             throw new NotDirectoryException("Specified directory is not a directory");
 
         List<FileDTO> content = new ArrayList<FileDTO>();
-        for(File child: directory.listFiles()){
+        File[] children = directory.listFiles();
+        if (children == null)
+            throw new IOException("Unable to open the directory");
+        for (File child : children) {
             content.add(FileDTOConverter.convertToDTO(child, rootDirectory));
         }
 
@@ -54,13 +57,13 @@ public class FileSystemService {
     }
 
     public String readTextFile(String path) throws IOException {
-        Pattern p = Pattern.compile("^.+\\.(txt|rtf)$");
-        Matcher m = p.matcher(path);
-        if (!m.matches())
-            throw new IOException("Selected file is not a text file");
+
 
         File file = openWithCheck(getAbsolutePath(path));
 
+        String mimeType = Files.probeContentType(file.toPath());
+        if (mimeType == null || !mimeType.startsWith("text"))
+            throw new IOException("Selected file is not a text file. File type: " + (mimeType == null ? "unknown" : mimeType));
         String data;
         data = new String(Files.readAllBytes(file.toPath()));
         return data;
@@ -142,7 +145,7 @@ public class FileSystemService {
             throw new IOException("Forbidden symbols found in path");
 
         File directory = new File(getAbsolutePath(directoryPath));
-        if(directory.exists())
+        if (directory.exists())
             throw new FileAlreadyExistsException("Directory already exists");
 
         boolean result = directory.mkdir();

@@ -59,6 +59,6 @@ public class FileDTO {
     }
 
     public void setDirectory(Boolean directory) {
-        directory = directory;
+        this.directory = directory;
     }
 }
