@@ -1,5 +1,7 @@
 package com.practice.model;
 
+import com.practice.service.FileSystemService;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,11 +17,7 @@ public class FileDTOConverter {
 
         dto.setSize(file.length());
 
-        String shorterRootDirectory = rootDirectory.substring(0, rootDirectory.length() - 1);
-        if (shorterRootDirectory.equals(file.getCanonicalPath()))
-            dto.setPath("");
-        else
-            dto.setPath(file.getCanonicalPath().replace(rootDirectory, ""));
+        dto.setPath(FileSystemService.getRelativePath(file.getCanonicalPath(), rootDirectory));
 
         Path path = Paths.get(file.getCanonicalPath());
         BasicFileAttributes attr;

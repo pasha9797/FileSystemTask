@@ -1,6 +1,8 @@
 package com.practice.controller;
 
 import com.practice.service.FileSystemService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,7 +21,8 @@ public class MainController {
     }
 
     @RequestMapping(value = "/get-file-info", method = RequestMethod.GET)
-    public @ResponseBody ResponseEntity<?> getFileInfo(@RequestParam String path) {
+    public @ResponseBody
+    ResponseEntity<?> getFileInfo(@RequestParam String path) {
         try {
             return ResponseEntity.ok(fileSystemService.getFileDTO(path));
         } catch (IOException e) {
@@ -28,7 +31,8 @@ public class MainController {
     }
 
     @RequestMapping(value = "/get-directory-content", method = RequestMethod.GET)
-    public @ResponseBody ResponseEntity<?> getDirectoryContent(@RequestParam String path) {
+    public @ResponseBody
+    ResponseEntity<?> getDirectoryContent(@RequestParam String path) {
         try {
             return ResponseEntity.ok(fileSystemService.getDirectoryContent(path));
         } catch (IOException e) {
@@ -37,7 +41,8 @@ public class MainController {
     }
 
     @RequestMapping(value = "/get-text-file-content", method = RequestMethod.GET)
-    public @ResponseBody ResponseEntity<?> getTextFileContent(@RequestParam String path) {
+    public @ResponseBody
+    ResponseEntity<?> getTextFileContent(@RequestParam String path) {
         try {
             return ResponseEntity.ok(fileSystemService.readTextFile(path));
         } catch (IOException e) {
@@ -46,7 +51,8 @@ public class MainController {
     }
 
     @RequestMapping(value = "/remove-file", method = RequestMethod.DELETE)
-    public @ResponseBody ResponseEntity<?> removeFile(@RequestParam String path) {
+    public @ResponseBody
+    ResponseEntity<?> removeFile(@RequestParam String path) {
         try {
             fileSystemService.removeFile(path);
             return ResponseEntity.ok().body("File removed successfully");
@@ -77,7 +83,8 @@ public class MainController {
     }
 
     @RequestMapping(value = "/rename-file", method = RequestMethod.POST)
-    public @ResponseBody ResponseEntity<String> renameFile(@RequestBody RenameRequest renameRequest) {
+    public @ResponseBody
+    ResponseEntity<String> renameFile(@RequestBody RenameRequest renameRequest) {
         try {
             fileSystemService.renameFile(renameRequest.getPath(), renameRequest.getNewName());
             return ResponseEntity.ok().body("File renamed successfully");
@@ -86,7 +93,8 @@ public class MainController {
         }
     }
 
-    private @ResponseBody static class MoveRequest {
+    private @ResponseBody
+    static class MoveRequest {
         private String path;
         private String newPath;
         private Boolean keepOld;
@@ -117,17 +125,21 @@ public class MainController {
     }
 
     @RequestMapping(value = "/move-file", method = RequestMethod.POST)
-    public @ResponseBody ResponseEntity<String> moveFile(@RequestBody MoveRequest moveRequest) {
+    public @ResponseBody
+    ResponseEntity<String> moveFile(@RequestBody MoveRequest moveRequest) {
+        HttpHeaders h = new HttpHeaders();
+        h.add("Content-type", "text/plain;charset=UTF-8");
         try {
-            fileSystemService.moveFile(moveRequest.getPath(), moveRequest.getNewPath(), moveRequest.getKeepOld());
-            return ResponseEntity.ok().body("File moved/copied successfully");
+            String resultPath = fileSystemService.moveFile(moveRequest.getPath(), moveRequest.getNewPath(), moveRequest.getKeepOld());
+            return new ResponseEntity<>(resultPath, h, HttpStatus.OK);
         } catch (IOException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), h, HttpStatus.BAD_REQUEST);
         }
     }
 
-    @RequestMapping(value="/upload-file", method = RequestMethod.POST)
-    public @ResponseBody ResponseEntity<String>  uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("directoryPath") String directoryPath) {
+    @RequestMapping(value = "/upload-file", method = RequestMethod.POST)
+    public @ResponseBody
+    ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("directoryPath") String directoryPath) {
         try {
             fileSystemService.uploadFile(file, directoryPath);
             return ResponseEntity.ok().body("File uploaded successfully");
@@ -136,8 +148,9 @@ public class MainController {
         }
     }
 
-    @RequestMapping(value="/create-directory", method = RequestMethod.POST)
-    public @ResponseBody ResponseEntity<String>  createDirectory(@RequestParam String directoryPath) {
+    @RequestMapping(value = "/create-directory", method = RequestMethod.POST)
+    public @ResponseBody
+    ResponseEntity<String> createDirectory(@RequestParam String directoryPath) {
         try {
             fileSystemService.createDirectory(directoryPath);
             return ResponseEntity.ok().body("Directory created successfully");
