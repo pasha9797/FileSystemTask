@@ -139,10 +139,9 @@ public class MainController {
 
     @RequestMapping(value = "/upload-file", method = RequestMethod.POST)
     public @ResponseBody
-    ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("directoryPath") String directoryPath) {
+    ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("directoryPath") String directoryPath) {
         try {
-            fileSystemService.uploadFile(file, directoryPath);
-            return ResponseEntity.ok().body("File uploaded successfully");
+            return ResponseEntity.ok(fileSystemService.uploadFile(file, directoryPath));
         } catch (IOException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -150,10 +149,10 @@ public class MainController {
 
     @RequestMapping(value = "/create-directory", method = RequestMethod.POST)
     public @ResponseBody
-    ResponseEntity<String> createDirectory(@RequestParam String directoryPath) {
+    ResponseEntity<?> createDirectory(@RequestParam String directoryPath) {
         try {
-            fileSystemService.createDirectory(directoryPath);
-            return ResponseEntity.ok().body("Directory created successfully");
+
+            return ResponseEntity.ok(fileSystemService.createDirectory(directoryPath));
         } catch (IOException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

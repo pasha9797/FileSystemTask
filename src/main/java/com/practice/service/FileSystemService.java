@@ -163,7 +163,7 @@ public class FileSystemService {
         }
     }
 
-    public void uploadFile(MultipartFile multipartFile, String directoryPath) throws IOException {
+    public FileDTO uploadFile(MultipartFile multipartFile, String directoryPath) throws IOException {
         File directory = openWithCheck(getAbsolutePath(directoryPath, rootDirectory));
         if (!directory.isDirectory())
             throw new NotDirectoryException("Specified directory is not a directory");
@@ -173,9 +173,10 @@ public class FileSystemService {
         if (file.exists())
             throw new FileAlreadyExistsException("File with such name already exists");
         multipartFile.transferTo(file);
+        return FileDTOConverter.convertToDTO(file, rootDirectory);
     }
 
-    public void createDirectory(String directoryPath) throws IOException {
+    public FileDTO createDirectory(String directoryPath) throws IOException {
         if (hasForbiddenSymbols(directoryPath))
             throw new IOException("Forbidden symbols found in path");
 
@@ -187,6 +188,8 @@ public class FileSystemService {
 
         if (!result)
             throw new IOException("Unable to create directory");
+
+        return FileDTOConverter.convertToDTO(directory,rootDirectory);
     }
 
     private File openWithCheck(String path) throws IOException {
