@@ -1,5 +1,6 @@
-package com.practice.model;
+package com.practice.model.converter;
 
+import com.practice.model.dto.FileDTO;
 import com.practice.service.FileSystemService;
 
 import java.io.File;

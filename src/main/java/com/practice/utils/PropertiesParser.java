@@ -1,4 +1,4 @@
-package com.practice.other;
+package com.practice.utils;
 
 import java.io.IOException;
 import java.io.InputStream;

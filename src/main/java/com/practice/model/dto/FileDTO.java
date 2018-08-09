@@ -1,4 +1,4 @@
-package com.practice.model;
+package com.practice.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonTypeName;

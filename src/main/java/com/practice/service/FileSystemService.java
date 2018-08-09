@@ -1,8 +1,10 @@
 package com.practice.service;
 
-import com.practice.model.FileDTO;
-import com.practice.model.FileDTOConverter;
-import com.practice.other.PropertiesParser;
+import com.practice.exception.ForbiddenPathSymbolException;
+import com.practice.exception.NotTextFileException;
+import com.practice.model.dto.FileDTO;
+import com.practice.model.converter.FileDTOConverter;
+import com.practice.utils.PropertiesParser;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,8 +14,6 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 public class FileSystemService {
@@ -27,29 +27,33 @@ public class FileSystemService {
             rootDirectory = removeRepeatingSlashes(rootDirectory);
             File file = new File(rootDirectory);
             if (!file.exists())
-                throw new NoSuchFileException("Specified root directory does not exist: " + rootDirectory);
+                throw new NoSuchFileException(rootDirectory);
             if (!file.isDirectory())
-                throw new NotDirectoryException("Specified root directory is not a directory: " + rootDirectory);
-        } catch (IOException e) {
+                throw new NotDirectoryException(rootDirectory);
+        } catch (Exception e) {
             e.printStackTrace();
-            rootDirectory = ".\\"; // add slash so that concatenation with relative paths will be available
+            rootDirectory = ".\\";
         }
     }
 
-    public FileDTO getFileDTO(String path) throws IOException {
+    public FileDTO getFileDTO(String path) throws Exception {
         File file = openWithCheck(getAbsolutePath(path, rootDirectory));
         return FileDTOConverter.convertToDTO(file, rootDirectory);
     }
 
-    public List<FileDTO> getDirectoryContent(String path) throws IOException {
-        File directory = openWithCheck(getAbsolutePath(path, rootDirectory));
-        if (!directory.isDirectory())
-            throw new NotDirectoryException("Specified directory is not a directory");
+    public Object getFileContent(String path) throws Exception {
+        File file = openWithCheck(getAbsolutePath(path, rootDirectory));
+        if (file.isDirectory())
+            return getDirectoryContent(file);
+        else
+            return readTextFile(file);
+    }
 
+    private List<FileDTO> getDirectoryContent(File directory) throws Exception {
         List<FileDTO> content = new ArrayList<FileDTO>();
         File[] children = directory.listFiles();
         if (children == null)
-            throw new IOException("Unable to open the directory");
+            throw new IOException(getRelativePath(directory.getCanonicalPath(), rootDirectory));
         for (File child : children) {
             content.add(FileDTOConverter.convertToDTO(child, rootDirectory));
         }
@@ -57,24 +61,20 @@ public class FileSystemService {
         return content;
     }
 
-    public String readTextFile(String path) throws IOException {
-
-
-        File file = openWithCheck(getAbsolutePath(path, rootDirectory));
-
+    private String readTextFile(File file) throws Exception {
         String mimeType = Files.probeContentType(file.toPath());
         if (mimeType == null || !mimeType.startsWith("text"))
-            throw new IOException("Selected file is not a text file. File type: " + (mimeType == null ? "unknown" : mimeType));
+            throw new NotTextFileException(getRelativePath(file.getCanonicalPath(), rootDirectory), mimeType == null ? "unknown" : mimeType);
         String data;
         data = new String(Files.readAllBytes(file.toPath()));
         return data;
     }
 
-    public void removeFile(String path) throws IOException {
+    public void removeFile(String path) throws Exception {
         File file = openWithCheck(getAbsolutePath(path, rootDirectory));
         boolean result = removeFileRecursive(file);
         if (!result)
-            throw new IOException("Unable to remove file or directory");
+            throw new IOException(path);
     }
 
     private boolean removeFileRecursive(File file) {
@@ -85,7 +85,7 @@ public class FileSystemService {
         return file.delete();
     }
 
-    public void renameFile(String path, String newName) throws IOException {
+    /*public void renameFile(String path, String newName) throws IOException {
         if (hasForbiddenSymbols(newName))
             throw new IOException("Forbidden symbols found in new name");
 
@@ -102,110 +102,124 @@ public class FileSystemService {
         if (!result) {
             throw new IOException("Unable to rename file or directory");
         }
-    }
+    }*/
 
-    public String moveFile(String path, String newPath, Boolean keepOld) throws IOException {
+    public String moveFile(String path, String newPath) throws Exception {
+        if (hasForbiddenSymbols(path))
+            throw new ForbiddenPathSymbolException(path);
+        if (hasForbiddenSymbols(newPath))
+            throw new ForbiddenPathSymbolException(newPath);
+
+        String absPath = getAbsolutePath(path, rootDirectory);
+        String absNewPath = getAbsolutePath(newPath, rootDirectory);
+
+        File srcFile = openWithCheck(absPath);
+        File destFile = new File(absNewPath);
+        String absDestDir=destFile.getCanonicalPath().substring(0,destFile.getCanonicalPath().lastIndexOf('\\'));
+        File destDir=new File(absDestDir);
+        if(!destDir.exists())
+            throw new NoSuchFileException(getRelativePath(destDir.getCanonicalPath(),rootDirectory));
+
+        if (destFile.exists()) {
+            throw new FileAlreadyExistsException(newPath);
+        }
+
         try {
-            if (hasForbiddenSymbols(path))
-                throw new IOException("Forbidden symbols found in old path");
-            if (hasForbiddenSymbols(newPath))
-                throw new IOException("Forbidden symbols found in new path");
-
-            String absPath = getAbsolutePath(path, rootDirectory);
-            String absNewPath = getAbsolutePath(newPath, rootDirectory);
-
-            if (!keepOld) {
-                if(absNewPath.equals(absPath)){
-                    throw new IOException("File destination is the same as the source");
+            if (!srcFile.isDirectory()) {
+                Path temp = Files.move(srcFile.toPath(), destFile.toPath());
+                if (temp == null) {
+                    throw new IOException();
                 }
-
-                File srcDir = openWithCheck(absPath);
-                if(!srcDir.isDirectory()) {
-                    Path temp = Files.move(Paths.get(absPath), Paths.get(absNewPath));
-                    if (temp == null) {
-                        throw new IOException("Unable to move file or directory");
-                    }
-                }
-                else{
-                    File destDir = new File(absNewPath);
-                    FileUtils.moveDirectory(srcDir, destDir);
-                }
-
             } else {
-                File destFile=new File(absNewPath);
-                while(destFile.exists()) {
-                    int extensionDot = absNewPath.lastIndexOf('.');
-                    if (extensionDot >= 0) {
-                        absNewPath = new StringBuilder(absNewPath).insert(extensionDot, "_copy").toString();
-                    } else {
-                        absNewPath += "_copy";
-                    }
-                    destFile=new File(absNewPath);
-                }
-
-                File srcDir = openWithCheck(absPath);
-                if(!srcDir.isDirectory()) {
-                    Path temp = Files.copy(Paths.get(absPath), Paths.get(absNewPath));
-                    if (temp == null) {
-                        throw new IOException("Unable to copy file or directory");
-                    }
-                }
-                else{
-                    File destDir = new File(absNewPath);
-                    FileUtils.copyDirectory(srcDir, destDir);
-                }
+                FileUtils.moveDirectory(srcFile, destFile);
             }
-            return getRelativePath(absNewPath, rootDirectory);
-        } catch (FileAlreadyExistsException e) {
-            throw new FileAlreadyExistsException("File or directory with such name already exists");
-        } catch (NoSuchFileException e) {
-            throw new NoSuchFileException("No such file or directory");
+
+            return getRelativePath(destFile.getCanonicalPath(),rootDirectory);
+        } catch (Exception e) {
+            throw new IOException(path);
         }
     }
 
-    public FileDTO uploadFile(MultipartFile multipartFile, String directoryPath) throws IOException {
+    public String copyFile(String path, String newPath) throws Exception {
+        if (hasForbiddenSymbols(path))
+            throw new ForbiddenPathSymbolException(path);
+        if (hasForbiddenSymbols(newPath))
+            throw new ForbiddenPathSymbolException(newPath);
+
+        String absPath = getAbsolutePath(path, rootDirectory);
+        String absNewPath = getAbsolutePath(newPath, rootDirectory);
+
+        File srcFile = openWithCheck(absPath);
+        File destFile = new File(absNewPath);
+
+        while (destFile.exists()) {
+            int extensionDot = absNewPath.lastIndexOf('.');
+            if (extensionDot >= 0) {
+                absNewPath = new StringBuilder(absNewPath).insert(extensionDot, "_copy").toString();
+            } else {
+                absNewPath += "_copy";
+            }
+            destFile = new File(absNewPath);
+        }
+
+        try {
+            if (!srcFile.isDirectory()) {
+                Path temp = Files.copy(srcFile.toPath(), destFile.toPath());
+                if (temp == null) {
+                    throw new IOException();
+                }
+            } else {
+                FileUtils.copyDirectory(srcFile, destFile);
+            }
+
+            return getRelativePath(destFile.getCanonicalPath(), rootDirectory);
+        } catch (Exception e) {
+            throw new IOException(path);
+        }
+    }
+
+    public FileDTO uploadFile(MultipartFile multipartFile, String directoryPath) throws Exception {
         File directory = openWithCheck(getAbsolutePath(directoryPath, rootDirectory));
         if (!directory.isDirectory())
-            throw new NotDirectoryException("Specified directory is not a directory");
+            throw new NotDirectoryException(directoryPath);
 
         String destinationPath = directory.getCanonicalPath() + "\\" + multipartFile.getOriginalFilename();
         File file = new File(destinationPath);
         if (file.exists())
-            throw new FileAlreadyExistsException("File with such name already exists");
+            throw new FileAlreadyExistsException(getRelativePath(file.getCanonicalPath(), rootDirectory));
         multipartFile.transferTo(file);
         return FileDTOConverter.convertToDTO(file, rootDirectory);
     }
 
-    public FileDTO createDirectory(String directoryPath) throws IOException {
+    public FileDTO createDirectory(String directoryPath) throws Exception {
         if (hasForbiddenSymbols(directoryPath))
-            throw new IOException("Forbidden symbols found in path");
+            throw new ForbiddenPathSymbolException(directoryPath);
 
         File directory = new File(getAbsolutePath(directoryPath, rootDirectory));
         if (directory.exists())
-            throw new FileAlreadyExistsException("Directory already exists");
+            throw new FileAlreadyExistsException(directoryPath);
 
         boolean result = directory.mkdir();
 
         if (!result)
-            throw new IOException("Unable to create directory");
+            throw new IOException(directoryPath);
 
-        return FileDTOConverter.convertToDTO(directory,rootDirectory);
+        return FileDTOConverter.convertToDTO(directory, rootDirectory);
     }
 
-    private File openWithCheck(String path) throws IOException {
+    private File openWithCheck(String path) throws Exception {
         if (hasForbiddenSymbols(path))
-            throw new IOException("Forbidden symbols found in path");
+            throw new ForbiddenPathSymbolException(path);
 
         File file = new File(path);
         if (!file.exists())
-            throw new NoSuchFileException("No such file or directory");
+            throw new NoSuchFileException(path);
         return file;
     }
 
     private boolean hasForbiddenSymbols(String path) {
         return path.contains("../") || path.contains("..\\");
     }
-
 
 
     public static String removeRepeatingSlashes(String str) {
@@ -217,7 +231,7 @@ public class FileSystemService {
         return removeRepeatingSlashes(absolutePath);
     }
 
-    public static String getRelativePath(String path, String rootDirectory){
+    public static String getRelativePath(String path, String rootDirectory) {
         String shorterRootDirectory = rootDirectory.substring(0, rootDirectory.length() - 1);
         if (shorterRootDirectory.equals(path))
             return "";
