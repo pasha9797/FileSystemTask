@@ -21,7 +21,6 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;
 
 @RestController
-@EnableWebMvc
 @RequestMapping(value = "/api")
 public class FileSystemController {
     private FileSystemService fileSystemService;
@@ -181,7 +180,7 @@ public class FileSystemController {
     @ExceptionHandler(NotTextFileException.class)
     @ResponseBody
     String handleNotTextFile(NotTextFileException ex) {
-        return "Specified file is not text file: " + ex.getMessage() + ". Trying to determine file type gave result: " + ex.getFileType();
+        return "Specified file is not text file: " + ex.getMessage();
     }
 
     @ResponseStatus(HttpStatus.CONFLICT)

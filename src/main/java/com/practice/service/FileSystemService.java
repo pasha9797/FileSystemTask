@@ -23,7 +23,7 @@ public class FileSystemService {
         PropertiesParser parser = PropertiesParser.getInstance();
         try {
             rootDirectory = parser.getRootDirectory();
-            rootDirectory += '\\';
+            rootDirectory += '/';
             rootDirectory = removeRepeatingSlashes(rootDirectory);
             File file = new File(rootDirectory);
             if (!file.exists())
@@ -32,7 +32,7 @@ public class FileSystemService {
                 throw new NotDirectoryException(rootDirectory);
         } catch (Exception e) {
             e.printStackTrace();
-            rootDirectory = ".\\";
+            rootDirectory = "./";
         }
     }
 
@@ -62,9 +62,13 @@ public class FileSystemService {
     }
 
     private String readTextFile(File file) throws Exception {
-        String mimeType = Files.probeContentType(file.toPath());
-        if (mimeType == null || !mimeType.startsWith("text"))
-            throw new NotTextFileException(getRelativePath(file.getCanonicalPath(), rootDirectory), mimeType == null ? "unknown" : mimeType);
+        if (!(
+                file.getName().endsWith(".txt") ||
+                        file.getName().endsWith(".rtf") ||
+                        file.getName().endsWith(".xml") ||
+                        file.getName().endsWith(".html")
+        ))
+            throw new NotTextFileException(getRelativePath(file.getCanonicalPath(), rootDirectory));
         String data;
         data = new String(Files.readAllBytes(file.toPath()));
         return data;
@@ -115,10 +119,11 @@ public class FileSystemService {
 
         File srcFile = openWithCheck(absPath);
         File destFile = new File(absNewPath);
-        String absDestDir=destFile.getCanonicalPath().substring(0,destFile.getCanonicalPath().lastIndexOf('\\'));
-        File destDir=new File(absDestDir);
-        if(!destDir.exists())
-            throw new NoSuchFileException(getRelativePath(destDir.getCanonicalPath(),rootDirectory));
+        String destFilePath = removeRepeatingSlashes(destFile.getCanonicalPath());
+        String absDestDir = destFilePath.substring(0, destFilePath.lastIndexOf('/'));
+        File destDir = new File(absDestDir);
+        if (!destDir.exists())
+            throw new NoSuchFileException(getRelativePath(destDir.getCanonicalPath(), rootDirectory));
 
         if (destFile.exists()) {
             throw new FileAlreadyExistsException(newPath);
@@ -134,7 +139,7 @@ public class FileSystemService {
                 FileUtils.moveDirectory(srcFile, destFile);
             }
 
-            return getRelativePath(destFile.getCanonicalPath(),rootDirectory);
+            return getRelativePath(destFile.getCanonicalPath(), rootDirectory);
         } catch (Exception e) {
             throw new IOException(path);
         }
@@ -183,7 +188,7 @@ public class FileSystemService {
         if (!directory.isDirectory())
             throw new NotDirectoryException(directoryPath);
 
-        String destinationPath = directory.getCanonicalPath() + "\\" + multipartFile.getOriginalFilename();
+        String destinationPath = removeRepeatingSlashes(directory.getCanonicalPath() + "/" + multipartFile.getOriginalFilename());
         File file = new File(destinationPath);
         if (file.exists())
             throw new FileAlreadyExistsException(getRelativePath(file.getCanonicalPath(), rootDirectory));
@@ -209,11 +214,11 @@ public class FileSystemService {
 
     private File openWithCheck(String path) throws Exception {
         if (hasForbiddenSymbols(path))
-            throw new ForbiddenPathSymbolException(path);
+            throw new ForbiddenPathSymbolException(getRelativePath(path, rootDirectory));
 
         File file = new File(path);
         if (!file.exists())
-            throw new NoSuchFileException(path);
+            throw new NoSuchFileException(getRelativePath(path, rootDirectory));
         return file;
     }
 
@@ -223,7 +228,7 @@ public class FileSystemService {
 
 
     public static String removeRepeatingSlashes(String str) {
-        return str.replaceAll("((\\\\)|(/))+", "\\\\");
+        return str.replaceAll("((\\\\)|(/))+", "/");
     }
 
     public static String getAbsolutePath(String path, String rootDirectory) {
@@ -236,6 +241,6 @@ public class FileSystemService {
         if (shorterRootDirectory.equals(path))
             return "";
         else
-            return path.replace(rootDirectory, "");
+            return removeRepeatingSlashes(path.replace(rootDirectory, ""));
     }
 }
