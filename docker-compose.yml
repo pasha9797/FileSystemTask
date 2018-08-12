@@ -1,7 +1,7 @@
 version: '2'
 services:
   web:
-    image: chernyshov/filesystem
+    build: .
     ports:
       - "8080:8080"
     volumes:

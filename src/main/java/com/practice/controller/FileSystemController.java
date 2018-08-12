@@ -57,7 +57,7 @@ public class FileSystemController {
      * @apiName GetFileContent
      * @apiDescription Get content of text file or content of directory.
      * @apiGroup Files
-     * @apiParam {String} path Path to the file. If specified file is directory, response will contain array of json objects describing each file withing directory. If specified file is text file, response will contain plain text from file.
+     * @apiParam {String} path Path to the file. If specified file is directory, response will contain array of json objects describing each file within directory. If specified file is text file, response will contain plain text from file.
      * @apiSuccessExample Success Directory content
      * HTTP/1.1 200 OK
      * [
