@@ -1,6 +1,0 @@
-setup:
-  config: {}
-build:
-  languages: []
-run:
-  web: java -jar webapp-runner.jar application.war

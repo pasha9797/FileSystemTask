@@ -19,7 +19,7 @@ import java.util.List;
 public class FileSystemService {
     private String rootDirectory;
 
-    public FileSystemService() throws Exception{
+    public FileSystemService() throws Exception {
         PropertiesParser parser = PropertiesParser.getInstance();
         try {
             rootDirectory = parser.getRootDirectory();
@@ -32,9 +32,10 @@ public class FileSystemService {
             e.printStackTrace();
             rootDirectory = "/";
         }
-        rootDirectory=new File(rootDirectory).getCanonicalPath();
+        rootDirectory = new File(rootDirectory).getCanonicalPath();
         rootDirectory += '/';
         rootDirectory = removeRepeatingSlashes(rootDirectory);
+        System.out.println("Root directory is set to " + rootDirectory);
     }
 
     public FileDTO getFileDTO(String path) throws Exception {
@@ -238,11 +239,11 @@ public class FileSystemService {
     }
 
     public static String getRelativePath(String path, String rootDirectory) {
-        path=removeRepeatingSlashes(path);
+        path = removeRepeatingSlashes(path);
         String shorterRootDirectory = rootDirectory.substring(0, rootDirectory.length() - 1);
         if (shorterRootDirectory.equals(path))
             return "";
         else
-            return removeRepeatingSlashes(path.replace(rootDirectory, ""));
+            return removeRepeatingSlashes(path.replaceFirst(rootDirectory, ""));
     }
 }
