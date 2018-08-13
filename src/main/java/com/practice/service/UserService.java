@@ -1,9 +1,7 @@
 package com.practice.service;
 
-import com.practice.exception.NoUserPermissionException;
-import com.practice.exception.PermissionNotFoundException;
-import com.practice.exception.UserAlreadyExistsException;
-import com.practice.exception.UserNotFoundException;
+import com.google.common.hash.Hashing;
+import com.practice.exception.*;
 import com.practice.model.Permission;
 import com.practice.model.User;
 import com.practice.model.converter.UserDTOConverter;
@@ -17,6 +15,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import javax.script.ScriptException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,14 +47,19 @@ public class UserService {
     }
 
     public UserDTO addUser(RegistrationRequest registrationRequest) throws Exception {
-        User user = userRepository.findByUsername(registrationRequest.getUsername());
+        if (registrationRequest.getUsername().length() < PropertiesParser.getInstance().getMinUsernameLength())
+            throw new ShortUsernameException(registrationRequest.getUsername());
 
+        User user = userRepository.findByUsername(registrationRequest.getUsername());
         if (user != null)
             throw new UserAlreadyExistsException(registrationRequest.getUsername());
-        user = new User();
 
+        user = new User();
         user.setUsername(registrationRequest.getUsername());
-        user.setPassword(registrationRequest.getPassword());
+        String hashedPassword = Hashing.sha256()
+                .hashString(registrationRequest.getPassword(), StandardCharsets.UTF_8)
+                .toString();
+        user.setPassword(hashedPassword);
 
         List<Permission> permissions = new ArrayList<>();
         String[] permissionsNames;

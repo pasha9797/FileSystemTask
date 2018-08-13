@@ -37,7 +37,7 @@ public class UserController {
         UserDTO userDTO = userService.addUser(registrationRequest);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest().path("/{username}").buildAndExpand(userDTO.getUsername()).toUri();
-        return ResponseEntity.created(location).build();
+        return ResponseEntity.created(location).body(userDTO);
     }
 
     @RequestMapping(value = "/users/{username}", method = RequestMethod.GET)

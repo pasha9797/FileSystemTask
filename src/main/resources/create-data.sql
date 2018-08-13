@@ -1,7 +1,7 @@
 CREATE TABLE _user (
   id        BIGINT IDENTITY PRIMARY KEY,
-  username  VARCHAR(30),
-  password  VARCHAR(50)
+  username  VARCHAR(100),
+  password  VARCHAR(128)
 );
 
 CREATE TABLE _permission (

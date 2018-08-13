@@ -8,6 +8,8 @@ public class PropertiesParser {
     private final String propertiesFile = "fs-properties.properties";
     private final String rootDirectoryPropertyName = "root-directory";
     private final String initialPermissionsPropertyName = "initial-permissions";
+    private final String minUsernameLengthPropertyName = "min-username-length";
+
     private Properties properties;
 
     private static PropertiesParser ourInstance;
@@ -38,4 +40,14 @@ public class PropertiesParser {
             return permissionsList;
         } else return new String[]{};
     }
+
+    public int getMinUsernameLength() {
+        String length = properties.getProperty(minUsernameLengthPropertyName);
+        try {
+            return Integer.parseInt(length);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
 }
