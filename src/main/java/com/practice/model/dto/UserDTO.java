@@ -1,11 +1,12 @@
 package com.practice.model.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UserDTO {
     private Long id;
     private String username;
-    private List<String> permissions;
+    private List<String> permissions = new ArrayList<>();
 
     public Long getId() {
         return id;

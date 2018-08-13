@@ -201,6 +201,6 @@ public class FileSystemController {
     @ExceptionHandler(IOException.class)
     @ResponseBody
     String handleIOException(Exception ex) {
-        return "Failed to access resource: " + ex.getMessage();
+        return "Unknown error occurred trying to perform action on file: " + ex.getMessage();
     }
 }

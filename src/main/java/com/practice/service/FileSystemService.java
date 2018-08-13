@@ -121,14 +121,15 @@ public class FileSystemService {
 
         File srcFile = openWithCheck(absPath);
         File destFile = new File(absNewPath);
-        String destFilePath = removeRepeatingSlashes(destFile.getCanonicalPath());
-        String absDestDir = destFilePath.substring(0, destFilePath.lastIndexOf('/'));
-        File destDir = new File(absDestDir);
-        if (!destDir.exists())
-            throw new NoSuchFileException(getRelativePath(destDir.getCanonicalPath(), rootDirectory));
+
 
         if (destFile.exists()) {
             throw new FileAlreadyExistsException(newPath);
+        }
+
+        File parent = destFile.getParentFile();
+        if (parent != null && !parent.exists()) {
+            throw new NoSuchFileException(getRelativePath(parent.getCanonicalPath(), rootDirectory));
         }
 
         try {

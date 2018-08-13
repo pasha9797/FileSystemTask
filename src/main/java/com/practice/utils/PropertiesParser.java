@@ -7,21 +7,35 @@ import java.util.Properties;
 public class PropertiesParser {
     private final String propertiesFile = "fs-properties.properties";
     private final String rootDirectoryPropertyName = "root-directory";
+    private final String initialPermissionsPropertyName = "initial-permissions";
+    private Properties properties;
 
-    private static PropertiesParser ourInstance = new PropertiesParser();
+    private static PropertiesParser ourInstance;
 
-    public static PropertiesParser getInstance() {
+    public static PropertiesParser getInstance() throws Exception {
+        if (ourInstance == null) {
+            ourInstance = new PropertiesParser();
+        }
         return ourInstance;
     }
 
-    private PropertiesParser() {
+    private PropertiesParser() throws IOException {
+        properties = new Properties();
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(propertiesFile);
+        properties.load(inputStream);
     }
 
     public String getRootDirectory() throws IOException {
-        Properties properties = new Properties();
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(propertiesFile);
-        properties.load(inputStream);
-        String res= properties.getProperty(rootDirectoryPropertyName);
-        return res;
+        String rootDir = properties.getProperty(rootDirectoryPropertyName);
+        return rootDir;
+    }
+
+    public String[] getInitialPermissions() {
+        String permissions = properties.getProperty(initialPermissionsPropertyName);
+
+        if (permissions != null) {
+            String[] permissionsList = permissions.split("#");
+            return permissionsList;
+        } else return new String[]{};
     }
 }
