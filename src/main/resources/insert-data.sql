@@ -9,4 +9,3 @@ INSERT INTO _user_permission VALUES (1, 1);
 INSERT INTO _user_permission VALUES (1, 2);
 INSERT INTO _user_permission VALUES (1, 3);
 INSERT INTO _user_permission VALUES (2, 1);
-INSERT INTO _user_permission VALUES (2, 2);

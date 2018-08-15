@@ -7,19 +7,27 @@ import com.practice.exception.UserNotFoundException;
 import com.practice.model.dto.UserDTO;
 import com.practice.model.request.LoginRequest;
 import com.practice.model.request.RegistrationRequest;
+import com.practice.security.SecurityService;
 import com.practice.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.net.URI;
 
 @RestController
 @RequestMapping(value = "/api")
 public class UserController {
+    @Autowired
     UserService userService;
+    @Autowired
+    SecurityService securityService;
 
     public UserController(UserService userService) {
         this.userService = userService;
@@ -53,16 +61,18 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @RequestMapping(value = "/users/sessions", method = RequestMethod.POST)
+    @RequestMapping(value = "/sessions", method = RequestMethod.POST)
     public @ResponseBody
-    ResponseEntity<?> signIn(@RequestBody LoginRequest loginRequest) {
-        return ResponseEntity.ok("test");
+    ResponseEntity<?> signIn(@RequestBody LoginRequest loginRequest) throws Exception {
+        securityService.signIn(loginRequest.getUsername(), loginRequest.getPassword());
+        return ResponseEntity.ok(userService.getUser(securityService.getSignedInUsername()));
     }
 
-    @RequestMapping(value = "/users/sessions", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/sessions", method = RequestMethod.DELETE)
     public @ResponseBody
-    ResponseEntity<?> signOut() {
-        return ResponseEntity.ok("test");
+    ResponseEntity<?> signOut(HttpServletRequest request, HttpServletResponse response) {
+        securityService.logOut(request, response);
+        return ResponseEntity.noContent().build();
     }
 
     @RequestMapping(value = "/users/{username}/permissions", method = RequestMethod.GET)
@@ -118,5 +128,12 @@ public class UserController {
     @ResponseBody
     String handleDataAccessException(Exception ex) {
         return "Error happened trying to access data: " + ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(AuthenticationException.class)
+    @ResponseBody
+    String handleAuthenticationException(Exception ex) {
+        return "Bad credentials";
     }
 }

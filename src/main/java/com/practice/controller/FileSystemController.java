@@ -5,6 +5,7 @@ import com.practice.exception.NotTextFileException;
 import com.practice.model.dto.FileDTO;
 import com.practice.model.request.UpdateFileRequest;
 import com.practice.service.FileSystemService;
+import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

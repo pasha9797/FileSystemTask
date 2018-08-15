@@ -9,6 +9,7 @@ import com.practice.model.dto.UserDTO;
 import com.practice.model.request.RegistrationRequest;
 import com.practice.repository.PermissionRepository;
 import com.practice.repository.UserRepository;
+import com.practice.security.Sha256Encoder;
 import com.practice.utils.PropertiesParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -56,9 +57,7 @@ public class UserService {
 
         user = new User();
         user.setUsername(registrationRequest.getUsername());
-        String hashedPassword = Hashing.sha256()
-                .hashString(registrationRequest.getPassword(), StandardCharsets.UTF_8)
-                .toString();
+        String hashedPassword = new Sha256Encoder().encode(registrationRequest.getPassword());
         user.setPassword(hashedPassword);
 
         List<Permission> permissions = new ArrayList<>();

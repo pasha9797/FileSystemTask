@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans
+        xmlns="http://www.springframework.org/schema/security"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:beans="http://www.springframework.org/schema/beans"
+        xmlns:sec="http://www.springframework.org/schema/security"
+        xsi:schemaLocation="
+      http://www.springframework.org/schema/security
+      http://www.springframework.org/schema/security/spring-security-4.2.xsd
+      http://www.springframework.org/schema/beans
+      http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+    <!-- Rest authentication entry point configuration -->
+    <!--suppress SpringXmlModelInspection -->
+    <http use-expressions="true" create-session="always" request-matcher="mvc"
+          entry-point-ref="restServicesEntryPoint" authentication-manager-ref="authenticationManagerForRest">
+        <intercept-url pattern="/api/sessions" access="permitAll()"/>
+
+        <intercept-url method="GET" pattern="/api/files/**" access="hasAuthority('read')"/>
+        <intercept-url method="POST" pattern="/api/files/**" access="hasAuthority('write')"/>
+        <intercept-url method="PUT" pattern="/api/files/**" access="hasAuthority('write')"/>
+        <intercept-url method="DELETE" pattern="/api/files/**" access="hasAuthority('write')"/>
+
+        <intercept-url method="GET" pattern="/api/users" access="hasAuthority('admin')"/>
+        <intercept-url method="GET" pattern="/api/users/**" access="isAuthenticated()"/>
+        <intercept-url method="DELETE" pattern="/api/users/**" access="hasAuthority('admin')"/>
+        <intercept-url method="POST" pattern="/api/users" access="permitAll()"/>
+        <intercept-url method="POST" pattern="/api/users/**" access="hasAuthority('admin')"/>
+        <csrf disabled="true"/>
+    </http>
+
+    <!-- Entry point for REST service. -->
+    <beans:bean id="restServicesEntryPoint"
+                class="com.practice.security.RestAuthenticationEntryPoint"/>
+
+    <!-- Custom User details service which is provide the user data -->
+    <beans:bean id="customUserDetailsService"
+                class="com.practice.security.CustomUserDetailsService"/>
+
+    <beans:bean id="encoder" class="com.practice.security.Sha256Encoder"/>
+
+    <!-- Authentication manager -->
+    <authentication-manager alias="authenticationManagerForRest">
+        <authentication-provider user-service-ref="customUserDetailsService">
+            <password-encoder ref="encoder"/>
+        </authentication-provider>
+    </authentication-manager>
+
+    <!-- Enable the annotations for defining the secure role -->
+    <global-method-security secured-annotations="enabled"/>
+
+</beans:beans>
