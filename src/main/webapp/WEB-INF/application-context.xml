@@ -31,8 +31,8 @@
     </bean>
 
     <jdbc:embedded-database id="dataSource" type="H2">
-        <jdbc:script location="classpath:create-data.sql"/>
-        <jdbc:script location="classpath:insert-data.sql"/>
+        <jdbc:script location="classpath:db/create-data.sql"/>
+        <jdbc:script location="classpath:db/insert-data.sql"/>
     </jdbc:embedded-database>
 
 
@@ -60,6 +60,14 @@
 
     <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
         <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
+
+    <bean id="mapper" class="org.dozer.DozerBeanMapper">
+        <property name="mappingFiles">
+            <list>
+                <value>classpath:dozer/dozer-mapping.xml</value>
+            </list>
+        </property>
     </bean>
 
 </beans>

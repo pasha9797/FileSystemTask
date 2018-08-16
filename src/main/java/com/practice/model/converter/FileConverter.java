@@ -11,7 +11,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Date;
 
-public class FileDTOConverter {
+public class FileConverter {
     public static FileDTO convertToDTO(File file, String rootDirectory) throws IOException {
         FileDTO dto;
         dto = new FileDTO();

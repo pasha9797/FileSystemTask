@@ -1,19 +1,12 @@
 package com.practice.controller;
 
-import com.practice.exception.NoUserPermissionException;
-import com.practice.exception.PermissionNotFoundException;
-import com.practice.exception.UserAlreadyExistsException;
-import com.practice.exception.UserNotFoundException;
 import com.practice.model.dto.UserDTO;
 import com.practice.model.request.LoginRequest;
 import com.practice.model.request.RegistrationRequest;
 import com.practice.security.SecurityService;
 import com.practice.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -33,12 +26,44 @@ public class UserController {
         this.userService = userService;
     }
 
+    /**
+     * @api {get} /api/users Get all users
+     * @apiName GetAllUsers
+     * @apiPermission Admin
+     * @apiDescription Get list of json objects representing each user in database.
+     * @apiGroup Users
+     * @apiSuccessExample Success response
+     * [
+     * {
+     * "username": "test",
+     * "permissions": ["read", "write"]
+     * },
+     * {
+     * "username": "admin",
+     * "permissions": ["read", "write","admin"]
+     * }
+     * ]
+     */
     @RequestMapping(value = "/users", method = RequestMethod.GET)
     public @ResponseBody
     ResponseEntity<?> getAllUsers() {
         return ResponseEntity.ok(userService.getUsers());
     }
 
+    /**
+     * @api {post} /api/users Sign up
+     * @apiName UserSignUp
+     * @apiPermission Anybody
+     * @apiDescription Register new user in system
+     * @apiGroup Users
+     * @apiParam {String} username New username.
+     * @apiParam {String} password New password.
+     * @apiParamExample {json} Request example
+     * {
+     * "username": "test",
+     * "password": "test"
+     * }
+     */
     @RequestMapping(value = "/users", method = RequestMethod.POST)
     public @ResponseBody
     ResponseEntity<?> signUp(@RequestBody RegistrationRequest registrationRequest) throws Exception {
@@ -48,12 +73,33 @@ public class UserController {
         return ResponseEntity.created(location).body(userDTO);
     }
 
+    /**
+     * @api {get} /api/users/:username Get user
+     * @apiName GetUser
+     * @apiPermission Authenticated user
+     * @apiDescription Get data about user in json format.
+     * @apiGroup Users
+     * @apiParam {String} username User's username.
+     * @apiSuccessExample Success response
+     * {
+     * "username": "test",
+     * "permissions": ["read", "write"]
+     * }
+     */
     @RequestMapping(value = "/users/{username}", method = RequestMethod.GET)
     public @ResponseBody
     ResponseEntity<?> getUser(@PathVariable String username) throws Exception {
         return ResponseEntity.ok(userService.getUser(username));
     }
 
+    /**
+     * @api {delete} /api/users/:username Delete user
+     * @apiName DeleteUser
+     * @apiPermission Admin
+     * @apiDescription Delete user from system.
+     * @apiGroup Users
+     * @apiParam {String} username User's username.
+     */
     @RequestMapping(value = "/users/{username}", method = RequestMethod.DELETE)
     public @ResponseBody
     ResponseEntity<?> deleteUser(@PathVariable String username) throws Exception {
@@ -61,6 +107,27 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * @api {post} /api/sessions Sign in
+     * @apiName SignIn
+     * @apiPermission Anybody
+     * @apiDescription Authenticate user in system.
+     * @apiGroup Auth
+     * @apiParam {String} username User's username.
+     * @apiParam {String} password User's password.
+     * @apiParamExample {json} Request example
+     * {
+     * "username": "test",
+     * "password": "test"
+     * }
+     * @apiSuccess (Success 200) {json} User Json object representing user authenticated.
+     * @apiSuccessExample Success response
+     * {
+     * "username": "test",
+     * "permissions": ["read", "write"]
+     * }
+     * @apiError (Bad Request 400) BadRequest Bad credentials
+     */
     @RequestMapping(value = "/sessions", method = RequestMethod.POST)
     public @ResponseBody
     ResponseEntity<?> signIn(@RequestBody LoginRequest loginRequest) throws Exception {
@@ -68,6 +135,13 @@ public class UserController {
         return ResponseEntity.ok(userService.getUser(securityService.getSignedInUsername()));
     }
 
+    /**
+     * @api {delete} /api/sessions Sign out
+     * @apiName SignOut
+     * @apiPermission Anybody
+     * @apiDescription Perform user log out.
+     * @apiGroup Auth
+     */
     @RequestMapping(value = "/sessions", method = RequestMethod.DELETE)
     public @ResponseBody
     ResponseEntity<?> signOut(HttpServletRequest request, HttpServletResponse response) {
@@ -75,12 +149,31 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * @api {get} /api/users/:username/permissions Get user permissions
+     * @apiName GetPermissions
+     * @apiPermission Authenticated user
+     * @apiDescription Get list user permissions.
+     * @apiParam {String} username User's username.
+     * @apiGroup Users
+     * @apiSuccessExample Success response
+     * ["read","write"]
+     */
     @RequestMapping(value = "/users/{username}/permissions", method = RequestMethod.GET)
     public @ResponseBody
     ResponseEntity<?> getPermissions(@PathVariable String username) throws Exception {
         return ResponseEntity.ok(userService.getUserPermissions(username));
     }
 
+    /**
+     * @api {delete} /api/users/:username/permissions Delete user permission
+     * @apiName DeletePermission
+     * @apiPermission Admin
+     * @apiDescription Delete user permission.
+     * @apiParam {String} username User's username.
+     * @apiParam {String} permission User's permission name.
+     * @apiGroup Users
+     */
     @RequestMapping(value = "/users/{username}/permissions", method = RequestMethod.DELETE)
     public @ResponseBody
     ResponseEntity<?> deletePermission(@PathVariable String username, @RequestParam String permission) throws Exception {
@@ -88,52 +181,20 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * @api {post} /api/users/:username/permissions Add user permission
+     * @apiName AddPermission
+     * @apiPermission Admin
+     * @apiDescription Add user permission.
+     * @apiParam {String} username User's username.
+     * @apiParamExample {String} User permission specified in request body
+     * write
+     * @apiGroup Users
+     */
     @RequestMapping(value = "/users/{username}/permissions", method = RequestMethod.POST)
     public @ResponseBody
     ResponseEntity<?> addPermission(@PathVariable String username, @RequestBody String permission) throws Exception {
         userService.addUserPermission(username, permission);
         return ResponseEntity.ok().build();
-    }
-
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(UserNotFoundException.class)
-    @ResponseBody
-    String handleUserNotFound(Exception ex) {
-        return "No such user exists: " + ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(PermissionNotFoundException.class)
-    @ResponseBody
-    String handlePermissionNotFound(Exception ex) {
-        return "No such permission exists: " + ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(NoUserPermissionException.class)
-    @ResponseBody
-    String handleNoUserPermission(NoUserPermissionException ex) {
-        return "User " + ex.getUsername() + " does not have such permission: " + ex.getPermission();
-    }
-
-    @ResponseStatus(HttpStatus.CONFLICT)
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    @ResponseBody
-    String handleUserAlreadyExists(Exception ex) {
-        return "User with such name already exists: " + ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(DataAccessException.class)
-    @ResponseBody
-    String handleDataAccessException(Exception ex) {
-        return "Error happened trying to access data: " + ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(AuthenticationException.class)
-    @ResponseBody
-    String handleAuthenticationException(Exception ex) {
-        return "Bad credentials";
     }
 }

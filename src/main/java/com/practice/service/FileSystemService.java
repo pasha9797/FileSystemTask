@@ -3,7 +3,7 @@ package com.practice.service;
 import com.practice.exception.ForbiddenPathSymbolException;
 import com.practice.exception.NotTextFileException;
 import com.practice.model.dto.FileDTO;
-import com.practice.model.converter.FileDTOConverter;
+import com.practice.model.converter.FileConverter;
 import com.practice.utils.PropertiesParser;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
@@ -40,7 +40,7 @@ public class FileSystemService {
 
     public FileDTO getFileDTO(String path) throws Exception {
         File file = openWithCheck(getAbsolutePath(path, rootDirectory));
-        return FileDTOConverter.convertToDTO(file, rootDirectory);
+        return FileConverter.convertToDTO(file, rootDirectory);
     }
 
     public Object getFileContent(String path) throws Exception {
@@ -57,7 +57,7 @@ public class FileSystemService {
         if (children == null)
             throw new IOException(getRelativePath(directory.getCanonicalPath(), rootDirectory));
         for (File child : children) {
-            content.add(FileDTOConverter.convertToDTO(child, rootDirectory));
+            content.add(FileConverter.convertToDTO(child, rootDirectory));
         }
 
         return content;
@@ -196,7 +196,7 @@ public class FileSystemService {
         if (file.exists())
             throw new FileAlreadyExistsException(getRelativePath(file.getCanonicalPath(), rootDirectory));
         multipartFile.transferTo(file);
-        return FileDTOConverter.convertToDTO(file, rootDirectory);
+        return FileConverter.convertToDTO(file, rootDirectory);
     }
 
     public FileDTO createDirectory(String directoryPath) throws Exception {
@@ -212,7 +212,7 @@ public class FileSystemService {
         if (!result)
             throw new IOException(directoryPath);
 
-        return FileDTOConverter.convertToDTO(directory, rootDirectory);
+        return FileConverter.convertToDTO(directory, rootDirectory);
     }
 
     private File openWithCheck(String path) throws Exception {

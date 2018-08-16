@@ -1,25 +1,15 @@
 package com.practice.controller;
 
-import com.practice.exception.ForbiddenPathSymbolException;
-import com.practice.exception.NotTextFileException;
 import com.practice.model.dto.FileDTO;
 import com.practice.model.request.UpdateFileRequest;
 import com.practice.service.FileSystemService;
-import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import java.io.IOException;
 import java.net.URI;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.NotDirectoryException;
 
 @RestController
 @RequestMapping(value = "/api")
@@ -37,7 +27,6 @@ public class FileSystemController {
      * @apiGroup Files
      * @apiParam {String} path Path to the file.
      * @apiSuccessExample Success response
-     * HTTP/1.1 200 OK
      * {
      * "path": "Desktop",
      * "size": 4096,
@@ -60,7 +49,6 @@ public class FileSystemController {
      * @apiGroup Files
      * @apiParam {String} path Path to the file. If specified file is directory, response will contain array of json objects describing each file within directory. If specified file is text file, response will contain plain text from file.
      * @apiSuccessExample Success Directory content
-     * HTTP/1.1 200 OK
      * [
      * {
      * "path": ".android",
@@ -80,7 +68,6 @@ public class FileSystemController {
      * }
      * ]
      * @apiSuccessExample Success Text file
-     * HTTP/1.1 200 OK
      * Content-Type: text/plain;charset=ISO-8859-1
      * Content of the file will follow here.
      */
@@ -161,47 +148,5 @@ public class FileSystemController {
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest().queryParam("path", uploadedFile.getPath()).build().toUri();
         return ResponseEntity.created(location).body(uploadedFile);
-    }
-
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(NoSuchFileException.class)
-    @ResponseBody
-    String handleNoSuchFile(Exception ex) {
-        return "No such file or directory: " + ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(NotDirectoryException.class)
-    @ResponseBody
-    String handleNotDirectory(Exception ex) {
-        return "Specified file is not directory: " + ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(NotTextFileException.class)
-    @ResponseBody
-    String handleNotTextFile(NotTextFileException ex) {
-        return "Specified file is not text file: " + ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.CONFLICT)
-    @ExceptionHandler(FileAlreadyExistsException.class)
-    @ResponseBody
-    String handleFileAlreadyExists(Exception ex) {
-        return "File with such name already exists: " + ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(ForbiddenPathSymbolException.class)
-    @ResponseBody
-    String handleForbiddenPathSymbol(Exception ex) {
-        return "Forbidden symbols found in file path: " + ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.CONFLICT)
-    @ExceptionHandler(IOException.class)
-    @ResponseBody
-    String handleIOException(Exception ex) {
-        return "Unknown error occurred trying to perform action on file: " + ex.getMessage();
     }
 }

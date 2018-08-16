@@ -1,6 +1,97 @@
 [
   {
     "type": "post",
+    "url": "/api/sessions",
+    "title": "Sign in",
+    "name": "SignIn",
+    "permission": [
+      {
+        "name": "Anybody"
+      }
+    ],
+    "description": "<p>Authenticate user in system.</p>",
+    "group": "Auth",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "username",
+            "description": "<p>User's username.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "password",
+            "description": "<p>User's password.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request example",
+          "content": "{\n\"username\": \"test\",\n\"password\": \"test\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "User",
+            "description": "<p>Json object representing user authenticated.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success response",
+          "content": "{\n\"username\": \"test\",\n\"permissions\": [\"read\", \"write\"]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Bad Request 400": [
+          {
+            "group": "Bad Request 400",
+            "optional": false,
+            "field": "BadRequest",
+            "description": "<p>Bad credentials</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "src/main/java/com/practice/controller/UserController.java",
+    "groupTitle": "Auth"
+  },
+  {
+    "type": "delete",
+    "url": "/api/sessions",
+    "title": "Sign out",
+    "name": "SignOut",
+    "permission": [
+      {
+        "name": "Anybody"
+      }
+    ],
+    "description": "<p>Perform user log out.</p>",
+    "group": "Auth",
+    "version": "0.0.0",
+    "filename": "src/main/java/com/practice/controller/UserController.java",
+    "groupTitle": "Auth"
+  },
+  {
+    "type": "post",
     "url": "/api/files",
     "title": "Create file or directory",
     "name": "CreateFile",
@@ -78,12 +169,12 @@
       "examples": [
         {
           "title": "Success Directory content",
-          "content": "HTTP/1.1 200 OK\n[\n{\n\"path\": \".android\",\n\"size\": 0,\n\"creationDate\": 1529564019132,\n\"lastModifiedDate\": 1529564381823,\n\"lastAccessDate\": 1529564381823,\n\"directory\": true\n},\n{\n\"path\": \".bash_history\",\n\"size\": 75,\n\"creationDate\": 1533217156161,\n\"lastModifiedDate\": 1533218627613,\n\"lastAccessDate\": 1533217156161,\n\"directory\": false\n}\n]",
+          "content": "[\n{\n\"path\": \".android\",\n\"size\": 0,\n\"creationDate\": 1529564019132,\n\"lastModifiedDate\": 1529564381823,\n\"lastAccessDate\": 1529564381823,\n\"directory\": true\n},\n{\n\"path\": \".bash_history\",\n\"size\": 75,\n\"creationDate\": 1533217156161,\n\"lastModifiedDate\": 1533218627613,\n\"lastAccessDate\": 1533217156161,\n\"directory\": false\n}\n]",
           "type": "json"
         },
         {
           "title": "Success Text file",
-          "content": "HTTP/1.1 200 OK\nContent-Type: text/plain;charset=ISO-8859-1\nContent of the file will follow here.",
+          "content": "Content-Type: text/plain;charset=ISO-8859-1\nContent of the file will follow here.",
           "type": "json"
         }
       ]
@@ -116,7 +207,7 @@
       "examples": [
         {
           "title": "Success response",
-          "content": "HTTP/1.1 200 OK\n{\n\"path\": \"Desktop\",\n\"size\": 4096,\n\"creationDate\": 1529534686391,\n\"lastModifiedDate\": 1533468452927,\n\"lastAccessDate\": 1533468452927,\n\"directory\": true\n}",
+          "content": "{\n\"path\": \"Desktop\",\n\"size\": 4096,\n\"creationDate\": 1529534686391,\n\"lastModifiedDate\": 1533468452927,\n\"lastAccessDate\": 1533468452927,\n\"directory\": true\n}",
           "type": "json"
         }
       ]
@@ -173,5 +264,250 @@
     "version": "0.0.0",
     "filename": "src/main/java/com/practice/controller/FileSystemController.java",
     "groupTitle": "Files"
+  },
+  {
+    "type": "post",
+    "url": "/api/users/:username/permissions",
+    "title": "Add user permission",
+    "name": "AddPermission",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "description": "<p>Add user permission.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "username",
+            "description": "<p>User's username.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "User permission specified in request body",
+          "content": "write",
+          "type": "String"
+        }
+      ]
+    },
+    "group": "Users",
+    "version": "0.0.0",
+    "filename": "src/main/java/com/practice/controller/UserController.java",
+    "groupTitle": "Users"
+  },
+  {
+    "type": "delete",
+    "url": "/api/users/:username/permissions",
+    "title": "Delete user permission",
+    "name": "DeletePermission",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "description": "<p>Delete user permission.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "username",
+            "description": "<p>User's username.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "permission",
+            "description": "<p>User's permission name.</p>"
+          }
+        ]
+      }
+    },
+    "group": "Users",
+    "version": "0.0.0",
+    "filename": "src/main/java/com/practice/controller/UserController.java",
+    "groupTitle": "Users"
+  },
+  {
+    "type": "delete",
+    "url": "/api/users/:username",
+    "title": "Delete user",
+    "name": "DeleteUser",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "description": "<p>Delete user from system.</p>",
+    "group": "Users",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "username",
+            "description": "<p>User's username.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "src/main/java/com/practice/controller/UserController.java",
+    "groupTitle": "Users"
+  },
+  {
+    "type": "get",
+    "url": "/api/users",
+    "title": "Get all users",
+    "name": "GetAllUsers",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "description": "<p>Get list of json objects representing each user in database.</p>",
+    "group": "Users",
+    "success": {
+      "examples": [
+        {
+          "title": "Success response",
+          "content": "[\n{\n\"username\": \"test\",\n\"permissions\": [\"read\", \"write\"]\n},\n{\n\"username\": \"admin\",\n\"permissions\": [\"read\", \"write\",\"admin\"]\n}\n]",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "src/main/java/com/practice/controller/UserController.java",
+    "groupTitle": "Users"
+  },
+  {
+    "type": "get",
+    "url": "/api/users/:username/permissions",
+    "title": "Get user permissions",
+    "name": "GetPermissions",
+    "permission": [
+      {
+        "name": "Authenticated user"
+      }
+    ],
+    "description": "<p>Get list user permissions.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "username",
+            "description": "<p>User's username.</p>"
+          }
+        ]
+      }
+    },
+    "group": "Users",
+    "success": {
+      "examples": [
+        {
+          "title": "Success response",
+          "content": "[\"read\",\"write\"]",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "src/main/java/com/practice/controller/UserController.java",
+    "groupTitle": "Users"
+  },
+  {
+    "type": "get",
+    "url": "/api/users/:username",
+    "title": "Get user",
+    "name": "GetUser",
+    "permission": [
+      {
+        "name": "Authenticated user"
+      }
+    ],
+    "description": "<p>Get data about user in json format.</p>",
+    "group": "Users",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "username",
+            "description": "<p>User's username.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success response",
+          "content": "{\n\"username\": \"test\",\n\"permissions\": [\"read\", \"write\"]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "src/main/java/com/practice/controller/UserController.java",
+    "groupTitle": "Users"
+  },
+  {
+    "type": "post",
+    "url": "/api/users",
+    "title": "Sign up",
+    "name": "UserSignUp",
+    "permission": [
+      {
+        "name": "Anybody"
+      }
+    ],
+    "description": "<p>Register new user in system</p>",
+    "group": "Users",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "username",
+            "description": "<p>New username.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "password",
+            "description": "<p>New password.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request example",
+          "content": "{\n\"username\": \"test\",\n\"password\": \"test\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "src/main/java/com/practice/controller/UserController.java",
+    "groupTitle": "Users"
   }
 ]

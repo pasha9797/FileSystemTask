@@ -1,0 +1,1 @@
+docker run --rm -it -v %cd%:/project -w /project maven mvn clean package && docker-compose up

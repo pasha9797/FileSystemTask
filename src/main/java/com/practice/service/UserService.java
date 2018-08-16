@@ -1,22 +1,19 @@
 package com.practice.service;
 
-import com.google.common.hash.Hashing;
 import com.practice.exception.*;
 import com.practice.model.Permission;
 import com.practice.model.User;
-import com.practice.model.converter.UserDTOConverter;
 import com.practice.model.dto.UserDTO;
 import com.practice.model.request.RegistrationRequest;
 import com.practice.repository.PermissionRepository;
 import com.practice.repository.UserRepository;
 import com.practice.security.Sha256Encoder;
 import com.practice.utils.PropertiesParser;
+import org.dozer.DozerBeanMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import javax.script.ScriptException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +23,9 @@ public class UserService {
     UserRepository userRepository;
     @Autowired
     PermissionRepository permissionRepository;
+    @Autowired
+    @Qualifier("mapper")
+    DozerBeanMapper mapper;
 
     public UserService() {
 
@@ -35,7 +35,7 @@ public class UserService {
         Iterable<User> users = userRepository.findAll();
         List<UserDTO> dtos = new ArrayList<>();
         for (User user : users) {
-            dtos.add(UserDTOConverter.convertToDTO(user));
+            dtos.add(mapper.map(user,UserDTO.class));
         }
         return dtos;
     }
@@ -44,7 +44,7 @@ public class UserService {
         User user = userRepository.findByUsername(username);
         if (user == null)
             throw new UserNotFoundException(username);
-        return UserDTOConverter.convertToDTO(user);
+        return mapper.map(user,UserDTO.class);
     }
 
     public UserDTO addUser(RegistrationRequest registrationRequest) throws Exception {

@@ -1,6 +1,6 @@
-FROM tomcat:8.0.20-jre8
-RUN mkdir /usr/local/tomcat/root
-RUN mkdir /usr/local/tomcat/root/dir1
-RUN mkdir /usr/local/tomcat/root/dir2
-RUN mkdir /usr/local/tomcat/root/dir3
-RUN mkdir /usr/local/tomcat/root/dir1/dir1-1
+FROM tomcat
+RUN mkdir /var/root_dir
+RUN mkdir /var/root_dir/dir1
+RUN mkdir /var/root_dir/dir2
+RUN mkdir /var/root_dir/dir3
+RUN mkdir /var/root_dir/dir1/dir1-1
