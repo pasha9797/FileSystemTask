@@ -6,6 +6,7 @@ import com.practice.model.request.RegistrationRequest;
 import com.practice.security.SecurityService;
 import com.practice.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -44,7 +45,7 @@ public class UserController {
      * }
      * ]
      */
-    @RequestMapping(value = "/users", method = RequestMethod.GET)
+    @RequestMapping(value = "/users", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE + "; charset=utf-8")
     public @ResponseBody
     ResponseEntity<?> getAllUsers() {
         return ResponseEntity.ok(userService.getUsers());
@@ -64,7 +65,7 @@ public class UserController {
      * "password": "test"
      * }
      */
-    @RequestMapping(value = "/users", method = RequestMethod.POST)
+    @RequestMapping(value = "/users", method = RequestMethod.POST,produces = MediaType.APPLICATION_JSON_VALUE + "; charset=utf-8")
     public @ResponseBody
     ResponseEntity<?> signUp(@RequestBody RegistrationRequest registrationRequest) throws Exception {
         UserDTO userDTO = userService.addUser(registrationRequest);
@@ -86,7 +87,7 @@ public class UserController {
      * "permissions": ["read", "write"]
      * }
      */
-    @RequestMapping(value = "/users/{username}", method = RequestMethod.GET)
+    @RequestMapping(value = "/users/{username}", method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_VALUE + "; charset=utf-8")
     public @ResponseBody
     ResponseEntity<?> getUser(@PathVariable String username) throws Exception {
         return ResponseEntity.ok(userService.getUser(username));
@@ -128,10 +129,11 @@ public class UserController {
      * }
      * @apiError (Bad Request 400) BadRequest Bad credentials
      */
-    @RequestMapping(value = "/sessions", method = RequestMethod.POST)
+    @RequestMapping(value = "/sessions", method = RequestMethod.POST,produces = MediaType.APPLICATION_JSON_VALUE + "; charset=utf-8")
     public @ResponseBody
-    ResponseEntity<?> signIn(@RequestBody LoginRequest loginRequest) throws Exception {
-        securityService.signIn(loginRequest.getUsername(), loginRequest.getPassword());
+    ResponseEntity<?> signIn(@RequestBody LoginRequest loginRequest, HttpServletResponse response) throws Exception {
+        String token = securityService.signIn(loginRequest.getUsername(), loginRequest.getPassword());
+        response.setHeader(securityService.TOKEN_HEADER, token);
         return ResponseEntity.ok(userService.getUser(securityService.getSignedInUsername()));
     }
 
@@ -159,7 +161,7 @@ public class UserController {
      * @apiSuccessExample Success response
      * ["read","write"]
      */
-    @RequestMapping(value = "/users/{username}/permissions", method = RequestMethod.GET)
+    @RequestMapping(value = "/users/{username}/permissions", method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_VALUE + "; charset=utf-8")
     public @ResponseBody
     ResponseEntity<?> getPermissions(@PathVariable String username) throws Exception {
         return ResponseEntity.ok(userService.getUserPermissions(username));

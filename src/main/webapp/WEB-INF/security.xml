@@ -12,8 +12,10 @@
 
     <!-- Rest authentication entry point configuration -->
     <!--suppress SpringXmlModelInspection -->
-    <http use-expressions="true" create-session="always" request-matcher="mvc"
+    <http use-expressions="true" create-session="stateless" request-matcher="mvc"
           entry-point-ref="restServicesEntryPoint" authentication-manager-ref="authenticationManagerForRest">
+        <custom-filter before="BASIC_AUTH_FILTER" ref="authenticationTokenFilter"/>
+
         <intercept-url pattern="/api/sessions" access="permitAll()"/>
 
         <intercept-url method="GET" pattern="/api/files/**" access="hasAuthority('read')"/>
@@ -32,12 +34,11 @@
     <!-- Entry point for REST service. -->
     <beans:bean id="restServicesEntryPoint"
                 class="com.practice.security.RestAuthenticationEntryPoint"/>
-
     <!-- Custom User details service which is provide the user data -->
     <beans:bean id="customUserDetailsService"
                 class="com.practice.security.CustomUserDetailsService"/>
-
     <beans:bean id="encoder" class="com.practice.security.Sha256Encoder"/>
+    <beans:bean id="authenticationTokenFilter" class="com.practice.security.AuthenticationTokenFilter"/>
 
     <!-- Authentication manager -->
     <authentication-manager alias="authenticationManagerForRest">

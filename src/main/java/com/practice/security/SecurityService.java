@@ -19,13 +19,25 @@ import javax.servlet.http.HttpServletResponse;
 public class SecurityService {
     @Autowired
     @Qualifier("authenticationManagerForRest")
-    AuthenticationManager authenticationManager;
-
+    private AuthenticationManager authenticationManager;
     @Autowired
     @Qualifier("customUserDetailsService")
-    UserDetailsService userDetailsService;
+    private UserDetailsService userDetailsService;
+    private TokenAuthenticationService tokenAuthenticationService=new TokenAuthenticationService();
 
-    public void signIn(String username, String password) {
+    public final String TOKEN_HEADER = "ACCESS-TOKEN";
+
+    public String signIn(String username, String password) {
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(username, password);
+        Authentication authentication = authenticationManager.authenticate(authenticationToken);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return tokenAuthenticationService.createToken(username,password);
+    }
+
+    public void SignInByToken(String token){
+        String username = tokenAuthenticationService.getUsernameFromToken(token);
+        String password=tokenAuthenticationService.getPasswordFromToken(token);
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(username, password);
         Authentication authentication = authenticationManager.authenticate(authenticationToken);
@@ -38,8 +50,8 @@ public class SecurityService {
             Authentication authentication = context.getAuthentication();
             if (authentication != null) {
                 Object principal = authentication.getPrincipal();
-                if (principal instanceof CustomUserDetails) {
-                    return ((CustomUserDetails) principal).userName;
+                if (principal instanceof UserDetails) {
+                    return ((UserDetails) principal).getUsername();
                 }
             }
         }

@@ -29,16 +29,16 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUsername(authentication);
         if (user == null)
             return null;
-        CustomUserDetails userDetails = new CustomUserDetails();
-        userDetails.setUserName(user.getUsername());
-        userDetails.setPassword(user.getPassword());
+
         List<CustomRole> roleList = new ArrayList<>();
         for (Permission permission : user.getPermissions()) {
             CustomRole role = new CustomRole();
             role.setAuthority(permission.getName());
             roleList.add(role);
-            userDetails.setList(roleList);
         }
+
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(user.getUsername(),user.getPassword(),roleList);
+        
         return userDetails;
     }
 

@@ -29,7 +29,7 @@ public class FileSystemService {
             if (!file.isDirectory())
                 throw new NotDirectoryException(rootDirectory);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Specified root directory does not exist");
             rootDirectory = "/";
         }
         rootDirectory = new File(rootDirectory).getCanonicalPath();

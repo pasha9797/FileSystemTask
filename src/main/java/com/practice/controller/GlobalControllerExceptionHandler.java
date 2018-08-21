@@ -3,6 +3,7 @@ package com.practice.controller;
 import com.practice.exception.*;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -106,4 +107,5 @@ public class GlobalControllerExceptionHandler {
     String handleAuthenticationException(Exception ex) {
         return "Bad credentials";
     }
+
 }

@@ -5,10 +5,12 @@ import com.practice.model.request.UpdateFileRequest;
 import com.practice.service.FileSystemService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
 import java.net.URI;
 
 @RestController
@@ -36,7 +38,7 @@ public class FileSystemController {
      * "directory": true
      * }
      */
-    @RequestMapping(value = "/files", method = RequestMethod.GET)
+    @RequestMapping(value = "/files", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE + "; charset=utf-8")
     public @ResponseBody
     ResponseEntity<?> getFileInfo(@RequestParam String path) throws Exception {
         return ResponseEntity.ok(fileSystemService.getFileDTO(path));
@@ -74,7 +76,15 @@ public class FileSystemController {
     @RequestMapping(value = "/files/content", method = RequestMethod.GET)
     public @ResponseBody
     ResponseEntity<?> getFileContent(@RequestParam String path) throws Exception {
-        return ResponseEntity.ok(fileSystemService.getFileContent(path));
+        Object response = fileSystemService.getFileContent(path);
+        HttpHeaders headers= new HttpHeaders();
+        if(response instanceof String){
+            headers.add("Content-type","text/plain;charset=utf-8");
+        }
+        else{
+            headers.add("Content-type","application/json;charset=utf-8");
+        }
+        return new ResponseEntity<>(response,headers,HttpStatus.OK);
     }
 
     /**
@@ -106,12 +116,9 @@ public class FileSystemController {
      * "option": "MOVE"
      * }
      */
-    @RequestMapping(value = "/files", method = RequestMethod.PUT)
+    @RequestMapping(value = "/files", method = RequestMethod.PUT, produces = MediaType.TEXT_PLAIN_VALUE + "; charset=utf-8")
     public @ResponseBody
     ResponseEntity<String> updateFile(@RequestBody UpdateFileRequest fileUpdateRequest) throws Exception {
-        HttpHeaders h = new HttpHeaders();
-        h.add("Content-type", "text/plain;charset=UTF-8");
-
         String resultPath = "";
         switch (fileUpdateRequest.getOption()) {
             case COPY:
@@ -121,7 +128,7 @@ public class FileSystemController {
                 resultPath = fileSystemService.moveFile(fileUpdateRequest.getPath(), fileUpdateRequest.getNewPath());
                 break;
         }
-        return new ResponseEntity<>(resultPath, h, HttpStatus.OK);
+        return new ResponseEntity<>(resultPath, HttpStatus.OK);
     }
 
     /**
@@ -132,7 +139,7 @@ public class FileSystemController {
      * @apiParam {String} directoryPath Path to directory where to upload new file, or path to the directory to create.
      * @apiParam {File} [file] File to upload. If not set, creation of directory at path directoryPath will be attempted.
      */
-    @RequestMapping(value = "/files", method = RequestMethod.POST)
+    @RequestMapping(value = "/files", method = RequestMethod.POST,produces = MediaType.APPLICATION_JSON_VALUE + "; charset=utf-8")
     public @ResponseBody
     ResponseEntity<?> uploadFile(
             @RequestParam(value = "file", required = false) MultipartFile file,
